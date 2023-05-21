@@ -7,6 +7,7 @@ import refs from './references';
 import ServicePictures from './getPictures';
 import { createMarkup, updateList, clearList, onError } from './functions';
 import LoadMoreBtn from './LoadMoreBtn';
+
 // створюємо кнопку за конструктором в файлі LoadMoreBtn. додаємо селектор на кнопку з розмітки. Робимо за замовчуванням приховану
 const loadMoreBtn = new LoadMoreBtn({
   selector: '.load-more',
@@ -33,16 +34,16 @@ async function onSearchPictures(event) {
 
       clearList(); // чистимо сторінку перед тим, як завантажити розмітку
 
-      const data = await servicePictures.getPictures();
+      const data = await servicePictures.getPictures(); // отримання даних по запиту
       const markup = data.reduce(
         (markup, picture) => markup + createMarkup(picture),
         ''
-      );
+      ); //створення розмітки
       loadMoreBtn.show(); // показуємо кнопку завантажити більше
       if (servicePictures.totalHits === 0) {
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
-        );
+        ); // коли приходить пустий масив
         servicePictures.resetPage();
         loadMoreBtn.hide();
         form.reset(); //чистимо форму в будьякому випадку при сабміті
@@ -50,7 +51,7 @@ async function onSearchPictures(event) {
       } else if (data.length < servicePictures.perPage) {
         Notiflix.Notify.success(
           `Hooray! We found ${servicePictures.totalHits} images.`
-        );
+        ); // якщо зображень менше ніж кількість на 1 ст, вставляємо розмітку, ховаємо кнопку
         updateList(markup);
         loadMoreBtn.hide();
         form.reset();
@@ -80,6 +81,8 @@ async function onLoadMore() {
     );
     updateList(markup);
     loadMoreBtn.enable(); // кнопка активна
+
+    // плавний скрол, при переході на 2-гу сторінку
     if (servicePictures.page > 1) {
       const { height: cardHeight } = document
         .querySelector('.gallery')
@@ -90,9 +93,9 @@ async function onLoadMore() {
         behavior: 'smooth',
       });
     }
-
+    // якщо зображень більше ніж totalHits
     if (
-      servicePictures.page * servicePictures.perPage >
+      servicePictures.page * servicePictures.perPage >=
       servicePictures.totalHits
     ) {
       Notiflix.Notify.info(
@@ -105,13 +108,15 @@ async function onLoadMore() {
   }
 }
 
-// // ! Infinite scroll
-// function handleScroll() {
-//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-//   if (scrollTop + clientHeight >= scrollHeight - 5) {
-//     onLoadMore();
-//   }
-// }
+//! Infinite scroll
+// handleScroll();
 
 // window.addEventListener('scroll', handleScroll);
+
+// function handleScroll() {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+//   if (scrollTop + clientHeight >= scrollHeight - 5) {
+
+//     loadMoreBtn.hide();
+//   }
+// }

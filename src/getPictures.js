@@ -1,5 +1,6 @@
 import axios from 'axios'; // бібліотека для реалізації http запитів замість fetch
 
+// створюємо конструктор для отримання запиту
 export default class ServicePictures {
   constructor() {
     this.URL = 'https://pixabay.com/api/';

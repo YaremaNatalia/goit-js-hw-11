@@ -8,7 +8,7 @@ const loadMoreBtn = new LoadMoreBtn({
   selector: '.load-more',
   isHidden: true,
 });
-
+// функція створення розмітки. Робимо деструктуризацію необхідних параметрів
 function createMarkup({
   webformatURL,
   tags,
@@ -41,9 +41,10 @@ function createMarkup({
 `;
 }
 
+// вставка(оновлення) розмітки на сторінці
 function updateList(markup) {
   refs.gallery.insertAdjacentHTML('beforeend', markup);
-  let lightbox = new SimpleLightbox('.photo-link');
+  let lightbox = new SimpleLightbox('.photo-link'); // додаємо слайдер
   lightbox.refresh();
 }
 
