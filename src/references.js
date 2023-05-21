@@ -1,5 +1,5 @@
 const refs = {
-  input: document.getElementById('search-form'),
+  form: document.getElementById('search-form'),
   gallery: document.querySelector('.gallery'),
 };
 

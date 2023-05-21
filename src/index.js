@@ -4,88 +4,114 @@ import Notiflix from 'notiflix';
 
 import refs from './references';
 
-import ApiPictures from './api';
+import ServicePictures from './getPictures';
 import { createMarkup, updateList, clearList, onError } from './functions';
 import LoadMoreBtn from './LoadMoreBtn';
-
+// створюємо кнопку за конструктором в файлі LoadMoreBtn. додаємо селектор на кнопку з розмітки. Робимо за замовчуванням приховану
 const loadMoreBtn = new LoadMoreBtn({
   selector: '.load-more',
   isHidden: true,
 });
-const apiPictures = new ApiPictures();
+const servicePictures = new ServicePictures(); // створюємо сервіс за конструктором класу з файлу аpi
 
-refs.input.addEventListener('submit', onSearchPictures);
-loadMoreBtn.button.addEventListener('click', fetchPictures);
+refs.form.addEventListener('submit', onSearchPictures);
+loadMoreBtn.button.addEventListener('click', onLoadMore);
 
-function onSearchPictures(event) {
+async function onSearchPictures(event) {
+  loadMoreBtn.hide();
   event.preventDefault();
   const form = event.currentTarget;
   const value = form.elements.searchQuery.value.trim(); // searchQuery це назва імені інпуту, до значення якого звертаємось
 
   if (value === '') {
     Notiflix.Notify.failure('Oops, no value...');
-  } else {
-    apiPictures.searchQuery = value;
-    apiPictures.resetPage();
-
-    loadMoreBtn.show();
     clearList();
-    fetchPictures()
-      .then(() => {
-        Notiflix.Notify.success(
-          `Hooray! We found ${apiPictures.totalHits} images.`
+  } else {
+    try {
+      servicePictures.searchQuery = value; // додаємо значення з інпуту в пошукову змінну searchQuery в файлі арі
+      servicePictures.resetPage(); //скидаємо сторінку до номеру 1
+
+      clearList(); // чистимо сторінку перед тим, як завантажити розмітку
+
+      const data = await servicePictures.getPictures();
+      const markup = data.reduce(
+        (markup, picture) => markup + createMarkup(picture),
+        ''
+      );
+      loadMoreBtn.show(); // показуємо кнопку завантажити більше
+      if (servicePictures.totalHits === 0) {
+        Notiflix.Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
         );
-      })
-      .finally(() => form.reset());
+        servicePictures.resetPage();
+        loadMoreBtn.hide();
+        form.reset(); //чистимо форму в будьякому випадку при сабміті
+        return;
+      } else if (data.length < servicePictures.perPage) {
+        Notiflix.Notify.success(
+          `Hooray! We found ${servicePictures.totalHits} images.`
+        );
+        updateList(markup);
+        loadMoreBtn.hide();
+        form.reset();
+      } else {
+        Notiflix.Notify.success(
+          `Hooray! We found ${servicePictures.totalHits} images.`
+        );
+        updateList(markup);
+        loadMoreBtn.show();
+        form.reset();
+      }
+    } catch (err) {
+      onError(err);
+    }
   }
 }
-//!для чого ця функція
-async function fetchPictures() {
-  loadMoreBtn.disable();
+
+// функція що підвантажує розмітку
+async function onLoadMore() {
+  loadMoreBtn.disable(); // кнопку неактивна "йде завантаження"
 
   try {
-    const markup = await getPicturesMarkup();
-    if (!markup) throw new Error('No data');
-    updateList(markup);
-  } catch (err) {
-    onError(err);
-  }
-
-  loadMoreBtn.enable();
-}
-
-//!перевірити цю функцію
-async function getPicturesMarkup() {
-  try {
-    const pictures = await apiPictures.getPictures();
-
-    if (!pictures) {
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-      loadMoreBtn.hide();
-      return '';
-    }
-    if (pictures.length === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-      loadMoreBtn.hide();
-    }
-
-    if (apiPictures.page * apiPictures.perPage >= apiPictures.totalHits) {
-      loadMoreBtn.hide();
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-      loadMoreBtn.hide();
-    }
-
-    return pictures.reduce(
+    const data = await servicePictures.getPictures();
+    const markup = data.reduce(
       (markup, picture) => markup + createMarkup(picture),
       ''
     );
+    updateList(markup);
+    loadMoreBtn.enable(); // кнопка активна
+    if (servicePictures.page > 1) {
+      const { height: cardHeight } = document
+        .querySelector('.gallery')
+        .firstElementChild.getBoundingClientRect();
+
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
+    }
+
+    if (
+      servicePictures.page * servicePictures.perPage >
+      servicePictures.totalHits
+    ) {
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
+      loadMoreBtn.hide();
+    }
   } catch (err) {
     onError(err);
   }
 }
+
+// // ! Infinite scroll
+// function handleScroll() {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+//   if (scrollTop + clientHeight >= scrollHeight - 5) {
+//     onLoadMore();
+//   }
+// }
+
+// window.addEventListener('scroll', handleScroll);
