@@ -40,7 +40,10 @@ async function onSearchPictures(event) {
         ''
       ); //створення розмітки
       loadMoreBtn.show(); // показуємо кнопку завантажити більше
-      if (servicePictures.totalHits === 0) {
+      if (!data) {
+        loadMoreBtn.hide();
+        return ''; // коли не приходить нічого (undefined).запит на отримання даних не був успішним або не повернув жодних результатів
+      } else if (data.length === 0) {
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         ); // коли приходить пустий масив
