@@ -84,7 +84,10 @@ async function onLoadMore() {
     );
     updateList(markup);
     loadMoreBtn.enable(); // кнопка активна
-
+    if (!data) {
+      loadMoreBtn.hide();
+      return ''; // коли не приходить нічого (undefined).запит на отримання даних не був успішним або не повернув жодних результатів
+    }
     // плавний скрол, при переході на 2-гу сторінку
     if (servicePictures.page > 1) {
       const { height: cardHeight } = document
