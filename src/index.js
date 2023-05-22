@@ -1,6 +1,7 @@
 import './css/styles.css';
 
 import Notiflix from 'notiflix';
+import debounce from 'lodash.debounce';
 
 import refs from './references';
 
@@ -115,14 +116,24 @@ async function onLoadMore() {
 }
 
 //! Infinite scroll
-// handleScroll();
 
 // window.addEventListener('scroll', handleScroll);
 
 // function handleScroll() {
 //   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 //   if (scrollTop + clientHeight >= scrollHeight - 5) {
+//     onLoadMore();
+//   }
+// }
 
-//     loadMoreBtn.hide();
+//! Infinite scroll з затримкою
+// const DEBOUNCE_DELAY = 300;
+
+// window.addEventListener('scroll', debounce(handleScroll, DEBOUNCE_DELAY));
+
+// function handleScroll() {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+//   if (scrollTop + clientHeight >= scrollHeight - 5) {
+//     onLoadMore();
 //   }
 // }
