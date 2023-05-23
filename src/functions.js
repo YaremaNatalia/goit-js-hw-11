@@ -1,4 +1,3 @@
-import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 import refs from './references';
@@ -44,8 +43,6 @@ function createMarkup({
 // вставка(оновлення) розмітки на сторінці
 function updateList(markup) {
   refs.gallery.insertAdjacentHTML('beforeend', markup);
-  let lightbox = new SimpleLightbox('.photo-link'); // додаємо слайдер
-  lightbox.refresh();
 }
 
 function clearList() {

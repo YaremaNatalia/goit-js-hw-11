@@ -1,6 +1,7 @@
 import './css/styles.css';
 
 import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
 import debounce from 'lodash.debounce';
 
 import refs from './references';
@@ -15,6 +16,7 @@ const loadMoreBtn = new LoadMoreBtn({
   isHidden: true,
 });
 const servicePictures = new ServicePictures(); // створюємо сервіс за конструктором класу з файлу аpi
+let lightbox = new SimpleLightbox('.photo-link'); // додаємо слайдер
 
 refs.form.addEventListener('submit', onSearchPictures);
 loadMoreBtn.button.addEventListener('click', onLoadMore);
@@ -58,6 +60,7 @@ async function onSearchPictures(event) {
         ); // якщо зображень менше ніж кількість на 1 ст, вставляємо розмітку, ховаємо кнопку
         updateList(markup);
         loadMoreBtn.hide();
+        lightbox.refresh();
         form.reset();
       } else {
         Notiflix.Notify.success(
@@ -65,6 +68,7 @@ async function onSearchPictures(event) {
         );
         updateList(markup);
         loadMoreBtn.show();
+        lightbox.refresh();
         form.reset();
       }
     } catch (err) {
@@ -79,11 +83,15 @@ async function onLoadMore() {
 
   try {
     const data = await servicePictures.getPictures();
+    const totalPages = Math.ceil(
+      servicePictures.totalHits / servicePictures.perPage
+    ); // загальна кількість сторінок знайдених зображень
     const markup = data.reduce(
       (markup, picture) => markup + createMarkup(picture),
       ''
     );
     updateList(markup);
+    lightbox.refresh();
     loadMoreBtn.enable(); // кнопка активна
     if (!data) {
       loadMoreBtn.hide();
@@ -100,11 +108,8 @@ async function onLoadMore() {
         behavior: 'smooth',
       });
     }
-    // якщо зображень більше ніж totalHits
-    if (
-      servicePictures.page * servicePictures.perPage >=
-      servicePictures.totalHits
-    ) {
+    // якщо сторінка більша ніж загальна кількість отриманих сторінок
+    if (servicePictures.page > totalPages) {
       Notiflix.Notify.info(
         "We're sorry, but you've reached the end of search results."
       );
